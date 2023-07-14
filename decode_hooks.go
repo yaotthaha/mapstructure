@@ -119,6 +119,25 @@ func StringToSliceHookFunc(sep string) DecodeHookFunc {
 	}
 }
 
+// UnmarshalInterfaceHookFunc returns a DecodeHookFunc that converts
+// map[string]interface{} to a custom type.
+func UnmarshalInterfaceHookFunc() DecodeHookFunc {
+	return func(
+		f reflect.Value,
+		t reflect.Value) (interface{}, error) {
+		result := reflect.New(t.Type()).Interface()
+		unmarshaler, ok := result.(Unmarshaler)
+		if !ok {
+			return f.Interface(), nil
+		}
+		err := unmarshaler.Unmarshal(f)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+	}
+}
+
 // StringToTimeDurationHookFunc returns a DecodeHookFunc that converts
 // strings to time.Duration.
 func StringToTimeDurationHookFunc() DecodeHookFunc {
